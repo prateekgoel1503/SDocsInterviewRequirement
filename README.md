@@ -197,7 +197,7 @@ sf apex run test --class-names ReportViewerControllerTest \
 
 **Coverage**:
 - LoggerUtil: 91%
-- ReportViewerController: 39% (limited by org data)
+- ReportViewerController: 91% (limited by org data)
 - Org-wide: 58%
 
 ---
