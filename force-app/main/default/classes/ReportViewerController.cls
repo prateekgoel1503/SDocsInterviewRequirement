@@ -209,6 +209,7 @@ public with sharing class ReportViewerController {
      * @param dataType The Reports API data type
      * @return String The corresponding datatable type
      */
+    @TestVisible
     private static String getColumnType(String dataType) {
         if (dataType == null) {
             return 'text';
