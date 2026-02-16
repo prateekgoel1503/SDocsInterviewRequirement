@@ -83,9 +83,10 @@ Created custom `Error_Log__c` object instead of relying only on System.debug:
 - **Dual Mode**: Database + debug logs for flexibility
 
 **LoggerUtil Features**:
-- Batch processing (auto-save at 10 logs)
-- Immediate save on ERROR level
+- Asynchronous logging via `@future` (compatible with cacheable methods)
+- Fire-and-forget execution (doesn't block main logic)
 - Graceful failure (won't break app if logging fails)
+- Immediate System.debug() output for console visibility
 
 ### 4. LWC Best Practices
 - Removed `@track` from primitives (unnecessary in modern LWC)
