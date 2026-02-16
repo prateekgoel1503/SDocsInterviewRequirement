@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "c/*": ["force-app/main/default/lwc/*"]
+    }
+  },
+  "include": ["**/*", "force-app/main/default/lwc/**/*"],
+  "exclude": ["node_modules", "**/__tests__/**"]
+}
