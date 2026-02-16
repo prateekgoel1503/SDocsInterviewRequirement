@@ -1,0 +1,200 @@
+<apex:page lightningStylesheets="true" showHeader="true" sidebar="true">
+    <apex:slds />
+    <apex:includeLightning />
+    
+    <style>
+        .modalOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            display: none;
+        }
+        
+        .modalContainer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 9999;
+            width: 80%;
+            max-width: 1200px;
+            max-height: 80vh;
+            overflow: auto;
+            display: none;
+        }
+        
+        .modalHeader {
+            padding: 1rem;
+            border-bottom: 1px solid #dddbda;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modalBody {
+            padding: 1rem;
+            min-height: 400px;
+        }
+        
+        .modalFooter {
+            padding: 1rem;
+            border-top: 1px solid #dddbda;
+            text-align: right;
+        }
+    </style>
+    
+    <div class="slds-scope">
+        <apex:pageBlock title="Report Viewer Demo">
+            <apex:pageBlockSection>
+                <apex:pageBlockSectionItem>
+                    <button class="slds-button slds-button_brand" onclick="openReportModal(); return false;">
+                        Open Report Viewer
+                    </button>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Selected Report Data" id="reportDataSection">
+                <apex:pageBlockSectionItem>
+                    <div id="reportDataDisplay">
+                        <p class="slds-text-body_regular">No report data selected yet. Click the button above to select and view a report.</p>
+                    </div>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        
+        <!-- Modal Overlay -->
+        <div id="modalOverlay" class="modalOverlay"></div>
+        
+        <!-- Modal Container -->
+        <div id="modalContainer" class="modalContainer">
+            <div class="modalHeader">
+                <h2 class="slds-text-heading_medium">Select and View Report</h2>
+                <button class="slds-button slds-button_icon" onclick="closeReportModal(); return false;" title="Close">
+                    <svg class="slds-button__icon" aria-hidden="true">
+                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
+                    </svg>
+                    <span class="slds-assistive-text">Close</span>
+                </button>
+            </div>
+            <div class="modalBody" id="lwcContainer">
+                <!-- LWC Component will be inserted here -->
+            </div>
+            <div class="modalFooter">
+                <button class="slds-button slds-button_neutral" onclick="closeReportModal(); return false;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var lwcComponent;
+        
+        function openReportModal() {
+            console.log('Opening report modal');
+            
+            // Show modal
+            document.getElementById('modalOverlay').style.display = 'block';
+            document.getElementById('modalContainer').style.display = 'block';
+            
+            // Create LWC component if not already created
+            if (!lwcComponent) {
+                $Lightning.use("c:ReportViewerApp", function() {
+                    $Lightning.createComponent(
+                        "c:reportViewer",
+                        {},
+                        "lwcContainer",
+                        function(component) {
+                            console.log("LWC component created successfully");
+                            lwcComponent = component;
+                        }
+                    );
+                });
+            }
+        }
+        
+        function closeReportModal() {
+            console.log('Closing report modal');
+            
+            // Get current report data before closing
+            if (lwcComponent) {
+                try {
+                    var reportData = lwcComponent.getCurrentReportData();
+                    if (reportData && reportData.data && reportData.data.length > 0) {
+                        displayReportDataOnVF(reportData);
+                    }
+                } catch (e) {
+                    console.error('Error getting report data:', e);
+                }
+            }
+            
+            // Hide modal
+            document.getElementById('modalOverlay').style.display = 'none';
+            document.getElementById('modalContainer').style.display = 'none';
+        }
+        
+        function displayReportDataOnVF(reportData) {
+            console.log('Displaying report data summary on VF page:', reportData);
+            
+            var displayDiv = document.getElementById('reportDataDisplay');
+            
+            if (!reportData || !reportData.data || reportData.data.length === 0) {
+                displayDiv.innerHTML = '<p class="slds-text-body_regular">No report data available.</p>';
+                return;
+            }
+            
+            // Build summary display
+            var html = '<div class="slds-box slds-theme_shade slds-m-top_small">';
+            html += '<div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">';
+            html += '<div class="slds-col">';
+            html += '<h3 class="slds-text-heading_small slds-m-bottom_x-small">Report Summary</h3>';
+            html += '</div>';
+            html += '</div>';
+            
+            html += '<dl class="slds-list_horizontal slds-wrap">';
+            
+            // Report Name
+            if (reportData.reportName) {
+                html += '<dt class="slds-item_label slds-text-color_weak slds-truncate" style="width: 150px;">Report Name:</dt>';
+                html += '<dd class="slds-item_detail slds-truncate"><strong>' + reportData.reportName + '</strong></dd>';
+            }
+            
+            // Total Records
+            html += '<dt class="slds-item_label slds-text-color_weak slds-truncate slds-m-top_small" style="width: 150px;">Total Records:</dt>';
+            html += '<dd class="slds-item_detail slds-truncate slds-m-top_small"><strong>' + reportData.totalRecords + '</strong></dd>';
+            
+            // Number of columns
+            html += '<dt class="slds-item_label slds-text-color_weak slds-truncate slds-m-top_small" style="width: 150px;">Columns:</dt>';
+            html += '<dd class="slds-item_detail slds-truncate slds-m-top_small">' + reportData.columns.length + '</dd>';
+            
+            // Column names
+            html += '<dt class="slds-item_label slds-text-color_weak slds-truncate slds-m-top_small" style="width: 150px;">Column Names:</dt>';
+            html += '<dd class="slds-item_detail slds-m-top_small">';
+            var columnNames = reportData.columns.map(function(col) { return col.label; }).join(', ');
+            html += '<span class="slds-text-body_small">' + columnNames + '</span>';
+            html += '</dd>';
+            
+            html += '</dl>';
+            html += '</div>';
+            
+            // Success message
+            html += '<p class="slds-m-top_small slds-text-color_success">';
+            html += 'Report data loaded successfully!';
+            html += '</p>';
+            
+            displayDiv.innerHTML = html;
+        }
+        
+        // Close modal when clicking overlay
+        document.getElementById('modalOverlay').addEventListener('click', function() {
+            closeReportModal();
+        });
+    </script>
+</apex:page>

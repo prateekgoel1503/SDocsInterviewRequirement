@@ -1,0 +1,71 @@
+<template>
+    <lightning-card title="Report Viewer" icon-name="standard:report">
+        
+        <!-- Error Message Display -->
+        <template if:true={errorMessage}>
+            <div class="slds-m-around_medium">
+                <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">
+                    <span class="slds-assistive-text">error</span>
+                    <h2>{errorMessage}</h2>
+                </div>
+            </div>
+        </template>
+
+        <!-- Report Selection -->
+        <div class="slds-m-around_medium">
+            <lightning-combobox
+                name="reportPicker"
+                label="Select a Report"
+                placeholder="Choose a report to view"
+                options={reportOptions}
+                value={selectedReportId}
+                onchange={handleReportChange}
+                disabled={isLoading}>
+            </lightning-combobox>
+        </div>
+
+        <!-- Loading Spinner -->
+        <template if:true={isLoading}>
+            <div class="slds-m-around_medium">
+                <lightning-spinner 
+                    alternative-text="Loading report data" 
+                    size="medium">
+                </lightning-spinner>
+            </div>
+        </template>
+
+        <!-- Report Data Table -->
+        <template if:true={showTable}>
+            <div class="slds-m-around_medium">
+                <lightning-datatable
+                    key-field="id"
+                    data={reportData}
+                    columns={tableColumns}
+                    hide-checkbox-column>
+                </lightning-datatable>
+                
+                <div class="slds-m-top_small slds-text-align_center">
+                    <p class="slds-text-body_small">
+                        Total Records: {totalRecords}
+                    </p>
+                </div>
+            </div>
+        </template>
+
+        <!-- No Data Message -->
+        <template if:true={showNoData}>
+            <div class="slds-m-around_medium">
+                <div class="slds-text-align_center slds-p-around_medium">
+                    <lightning-icon 
+                        icon-name="utility:info" 
+                        size="small">
+                    </lightning-icon>
+                    <p class="slds-m-top_small">
+                        No data available for this report.
+                    </p>
+                </div>
+            </div>
+        </template>
+
+    </lightning-card>
+</template>

@@ -76,5 +76,13 @@
         <members>*</members>
         <name>CustomMetadata</name>
     </types>
+    <types>
+        <members>*</members>
+        <name>Report</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>ReportFolder</name>
+    </types>
     <version>60.0</version>
 </Package>
