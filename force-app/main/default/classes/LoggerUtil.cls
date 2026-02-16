@@ -15,66 +15,65 @@ public class LoggerUtil {
     private static List<Error_Log__c> logsToInsert = new List<Error_Log__c>();
     
     /**
-     * @description Log debug message
+     * @description Log debug message (async for cacheable methods)
      */
     public static void debug(String component, String method, String message) {
-        log(LEVEL_DEBUG, component, method, message, null);
         System.debug(LoggingLevel.DEBUG, component + '.' + method + ': ' + message);
+        logAsync(LEVEL_DEBUG, component, method, message, null);
     }
     
     /**
-     * @description Log info message
+     * @description Log info message (async for cacheable methods)
      */
     public static void info(String component, String method, String message) {
-        log(LEVEL_INFO, component, method, message, null);
         System.debug(LoggingLevel.INFO, component + '.' + method + ': ' + message);
+        logAsync(LEVEL_INFO, component, method, message, null);
     }
     
     /**
-     * @description Log warning message
+     * @description Log warning message (async for cacheable methods)
      */
     public static void warn(String component, String method, String message) {
-        log(LEVEL_WARN, component, method, message, null);
         System.debug(LoggingLevel.WARN, component + '.' + method + ': ' + message);
+        logAsync(LEVEL_WARN, component, method, message, null);
     }
     
     /**
-     * @description Log error message with exception
+     * @description Log error message with exception (async for cacheable methods)
      */
     public static void error(String component, String method, String message, Exception ex) {
         String stackTrace = ex != null ? ex.getStackTraceString() : null;
         String errorMessage = message + (ex != null ? ': ' + ex.getMessage() : '');
         
-        log(LEVEL_ERROR, component, method, errorMessage, stackTrace);
         System.debug(LoggingLevel.ERROR, component + '.' + method + ': ' + errorMessage);
-        
-        // Auto-save error logs
-        saveLogs();
+        logAsync(LEVEL_ERROR, component, method, errorMessage, stackTrace);
     }
     
     /**
-     * @description Internal method to create log record
+     * @description Async method to save logs (called from cacheable methods)
      */
-    private static void log(String level, String component, String method, String message, String stackTrace) {
-        Error_Log__c errorLog = new Error_Log__c(
-            Component_Name__c = component,
-            Method_Name__c = method,
-            Error_Message__c = message,
-            Stack_Trace__c = stackTrace,
-            Log_Level__c = level,
-            User_Id__c = UserInfo.getUserId()
-        );
-        
-        logsToInsert.add(errorLog);
-        
-        // Auto-save for non-error logs if batch size reached
-        if (logsToInsert.size() >= 10 && level != LEVEL_ERROR) {
-            saveLogs();
+    @future
+    public static void logAsync(String level, String component, String method, String message, String stackTrace) {
+        try {
+            Error_Log__c errorLog = new Error_Log__c(
+                Component_Name__c = component,
+                Method_Name__c = method,
+                Error_Message__c = message,
+                Stack_Trace__c = stackTrace,
+                Log_Level__c = level,
+                User_Id__c = UserInfo.getUserId()
+            );
+            
+            Database.insert(errorLog, false);
+            System.debug(LoggingLevel.INFO, 'LoggerUtil: Async log saved');
+        } catch (Exception e) {
+            // If logging fails, just output to debug log
+            System.debug(LoggingLevel.ERROR, 'LoggerUtil: Failed to save async log - ' + e.getMessage());
         }
     }
     
     /**
-     * @description Save all pending logs to database
+     * @description Sync method to save logs (for non-cacheable methods)
      */
     public static void saveLogs() {
         if (logsToInsert.isEmpty()) {
@@ -95,8 +94,11 @@ public class LoggerUtil {
     
     /**
      * @description Manually flush logs (call at end of transaction)
+     * Note: This won't work in cacheable methods, use async methods instead
      */
     public static void flush() {
-        saveLogs();
+        // For cacheable methods, logs are already saved asynchronously
+        // This is a no-op to maintain backward compatibility
+        System.debug(LoggingLevel.INFO, 'LoggerUtil: flush() called (async logging active)');
     }
 }

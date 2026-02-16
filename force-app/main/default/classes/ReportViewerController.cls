@@ -108,7 +108,7 @@ public with sharing class ReportViewerController {
                 ));
             }
             
-            LoggerUtil.flush();
+            // Note: LoggerUtil uses async (@future) for cacheable methods
             
         } catch (Exception e) {
             LoggerUtil.error('ReportViewerController', 'getAvailableReports', 
@@ -191,7 +191,7 @@ public with sharing class ReportViewerController {
             LoggerUtil.info('ReportViewerController', 'runReport', 
                 'Successfully processed ' + result.totalRecords + ' records');
             
-            LoggerUtil.flush();
+            // Note: LoggerUtil uses async (@future) for all logging
             
         } catch (Reports.InvalidReportMetadataException e) {
             LoggerUtil.error('ReportViewerController', 'runReport', 'Invalid report metadata', e);
